@@ -1,0 +1,57 @@
+# =============================================================================
+# ZHMS — .gitignore
+# =============================================================================
+
+# Claude
+.claude
+.agents
+.codex
+AGENTS.md
+CLAUDE.md
+
+# Zephyr build artifacts
+build/
+**/build/
+twister-out/
+
+# Editor / OS
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache
+
+# Local deployment configuration
+config/*.local.conf
+
+# Documentation
+*.pdf
+# *.png
+# *.jpg
+# *.jpeg
+# *.bmp
+*.gif
+
+# docs/开发指南
+# docs/需求
+# docs/硬件资源说明
+# docs/BUG记录
+docs/datasheet
+docs/硬件资源说明/assets
+docs/superpowers/
+openspec/
+
+
+# worktrees
+.worktrees/
+.superpowers/
+
+Ref_Demo/

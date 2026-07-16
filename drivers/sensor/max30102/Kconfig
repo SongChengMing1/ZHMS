@@ -1,0 +1,22 @@
+menuconfig MAX30102
+	bool "MAX30102 Pulse Oximeter and Heart Rate Sensor"
+	default n
+	depends on SENSOR
+	depends on DT_HAS_MAXIM_MAX30102_ENABLED
+	select I2C if $(dt_compat_on_bus,$(DT_COMPAT_MAXIM_MAX30102),i2c)
+	select GPIO
+	help
+	  Enable the repo-local MAX30102 Zephyr sensor driver.
+	  This revision supports polling compatibility plus IRQ-assisted FIFO
+	  draining for the application service.
+
+if MAX30102
+
+config MAX30102_LOG_LEVEL
+	int "MAX30102 log level"
+	default 3
+	range 0 4
+	help
+	  Module log level used by the local MAX30102 driver.
+
+endif # MAX30102

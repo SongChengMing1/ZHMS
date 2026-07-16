@@ -1,0 +1,47 @@
+menu "ZHMS application configuration"
+
+config ZHMS_WIFI_SSID
+	string "Wi-Fi SSID"
+	default ""
+	help
+		SSID used by the Wi-Fi station connection.
+		Keep deployment-specific values in an untracked extra .conf file.
+
+config ZHMS_WIFI_PSK
+	string "Wi-Fi passphrase"
+	default ""
+	help
+		PSK used by the Wi-Fi station connection.
+		Do not commit real credentials to the repository.
+
+config ZHMS_MQTT_ENABLED
+	bool "Enable MQTT BPM uplink"
+	default n
+	help
+		Enable publishing the current BPM snapshot to an MQTT broker.
+		The default is disabled so a fresh checkout does not depend on a
+		developer's private LAN broker.
+
+config ZHMS_MQTT_BROKER_ADDR
+	string "MQTT broker IPv4 address"
+	default ""
+	help
+		IPv4 address of the MQTT broker used for the BPM uplink.
+
+config ZHMS_MQTT_BROKER_PORT
+	int "MQTT broker port"
+	default 1883
+	range 1 65535
+
+config ZHMS_MQTT_CLIENT_ID
+	string "MQTT client ID"
+	default "zhms-devkitc"
+
+config ZHMS_MQTT_TOPIC
+	string "MQTT BPM topic"
+	default "zhms/health/bpm"
+
+endmenu
+
+rsource "drivers/Kconfig"
+source "Kconfig.zephyr"

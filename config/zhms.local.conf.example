@@ -1,0 +1,16 @@
+# Copy this file to config/zhms.local.conf and fill in local values.
+# The local file is ignored by Git and must be passed to west as an extra
+# configuration file:
+#
+#   west build -p always -b esp32s3_devkitc/esp32s3/procpu -- \
+#     -DEXTRA_CONF_FILE=config/zhms.local.conf
+
+CONFIG_ZHMS_WIFI_SSID="your-wifi-ssid"
+CONFIG_ZHMS_WIFI_PSK="your-wifi-passphrase"
+
+# MQTT is optional. Keep it disabled if no broker is available.
+CONFIG_ZHMS_MQTT_ENABLED=n
+CONFIG_ZHMS_MQTT_BROKER_ADDR="192.168.1.100"
+CONFIG_ZHMS_MQTT_BROKER_PORT=1883
+CONFIG_ZHMS_MQTT_CLIENT_ID="zhms-devkitc-01"
+CONFIG_ZHMS_MQTT_TOPIC="zhms/devkitc-01/health/bpm"

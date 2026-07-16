@@ -1,0 +1,104 @@
+# DeviceTree binding for Maxim MAX30102
+# This binding is intentionally scoped to the repo-local IRQ-capable FIFO runtime.
+
+description: Maxim MAX30102 pulse oximeter and heart-rate sensor
+
+compatible: "maxim,max30102"
+
+include: [sensor-device.yaml, i2c-device.yaml]
+
+properties:
+  # I2C address of the MAX30102 on this board.
+  reg:
+    description: |
+      7-bit I2C address of the device. MAX30102 uses 0x57 in this project.
+
+  # Interrupt output wiring for the MAX30102.
+  irq-gpios:
+    type: phandle-array
+    description: |
+      Active-low interrupt output from the MAX30102. The signal is open-drain
+      and should be used with a pull-up. This property is used to configure the
+      IRQ callback that wakes the FIFO draining path.
+
+  # Acquisition mode selection.
+  acq-mode:
+    type: string
+    const: "spo2"
+    description: |
+      Acquisition mode written into MODE_CONFIG. This bring-up revision only
+      supports "spo2" for Red/IR sampling.
+
+  # FIFO sample averaging factor.
+  smp-ave:
+    type: int
+    default: 1
+    enum:
+      - 1
+      - 2
+      - 4
+      - 8
+      - 16
+      - 32
+    description: |
+      FIFO sample averaging factor. A value of 1 disables averaging. The
+      initial bring-up should keep this at 1 so raw waveform behavior is
+      easier to inspect from serial output and PC plots.
+
+  # FIFO watermark threshold.
+  fifo-watermark:
+    type: int
+    default: 15
+    enum: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    description: |
+      FIFO almost-full threshold expressed as remaining empty sample slots.
+      The IRQ-assisted driver programs this value into FIFO_CONFIG while the
+      application drains the FIFO in batches.
+
+  # FIFO rollover enable flag.
+  fifo-rollover-en:
+    type: boolean
+    description: |
+      Enables FIFO rollover when the FIFO becomes full. The IRQ-assisted
+      acquisition path can use this to observe overflow and emit a stream gap.
+
+  # SpO2 ADC range selection.
+  adc-rge:
+    type: int
+    default: 4096
+    enum:
+      - 2048
+      - 4096
+      - 8192
+      - 16384
+    description: |
+      SpO2 ADC full-scale range in nA. The project starts with 4096 as a
+      conservative demo-aligned setting for raw Red/IR acquisition.
+
+  # Sample rate selection.
+  smp-sr:
+    type: int
+    default: 100
+    enum: [50, 100, 200, 400, 800, 1000, 1600, 3200]
+    description: |
+      Effective sample rate in samples per second. The IRQ-assisted acquisition
+      path uses this to keep its logical timestamps monotonic.
+
+  # LED pulse width selection.
+  led-pw:
+    type: int
+    default: 411
+    enum: [69, 118, 215, 411]
+    description: |
+      LED pulse width in microseconds. This also determines ADC resolution.
+      The default 411 us corresponds to the full 18-bit path used by the
+      current FIFO decoding logic.
+
+  # LED current amplitude values.
+  led-pa:
+    type: uint8-array
+    const: !!binary JCQ=
+    description: |
+      LED pulse amplitude register values for the active channels. This
+      bring-up revision uses exactly two entries: index 0 is the Red LED
+      current setting and index 1 is the IR LED current setting.

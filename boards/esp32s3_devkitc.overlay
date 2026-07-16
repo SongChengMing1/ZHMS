@@ -1,0 +1,144 @@
+/* ZHMS — ESP32-S3 DevKitC 设备树覆盖 */
+
+#include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
+
+/ {
+	aliases {
+		lcd-bl = &lcd_backlight;
+	};
+
+	chosen {
+		zephyr,console = &usb_serial;
+		zephyr,shell-uart = &usb_serial;
+		zephyr,display = &st7789v_240x280;
+	};
+
+	lcd_backlight: lcd_backlight {
+		compatible = "regulator-fixed";
+		regulator-name = "backlight";
+		enable-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+	};
+
+	mipi_dbi {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi2>;
+		dc-gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		st7789v_240x280: st7789v@0 {
+			compatible = "sitronix,st7789v";
+			reg = <0>;
+			mipi-max-frequency = <20000000>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			width = <240>;
+			height = <280>;
+			x-offset = <0>;
+			y-offset = <20>;
+			vcom = <0x28>;
+			gctrl = <0x35>;
+			vrhs = <0x0B>;
+			vdvs = <0x0C>;
+			mdac = <0x00>;
+			gamma = <0x01>;
+			colmod = <0x05>;
+			lcm = <0x2C>;
+			// inversion-off;
+			porch-param = [0c 0c 00 33 33];
+			cmd2en-param = [01 23 45 67];
+			pwctrl1-param = [a4 a1];
+			pvgam-param = [d0 08 11 08 0c 15
+				       39 33 50 36 13 14
+				       29 2d];
+			nvgam-param = [d0 08 10 08 06 06
+				       39 44 51 0b 16 14
+				       2f 31];
+			ram-param = [00 f0];
+			rgb-param = [cd 08 14];
+		};
+	};
+
+	/* LVGL pointer input — route CST8xx touch events to LVGL pointer device */
+	lvgl_pointer: lvgl_pointer {
+		compatible = "zephyr,lvgl-pointer-input";
+		input = <&cst816d>;
+	};
+};
+
+&usb_serial {
+	status = "okay";
+};
+
+&flash0 {
+	reg = <0x0 0x1000000>; /* 16MB */
+};
+
+&spi2 {
+	pinctrl-0 = <&spim2_lcd_pins>;
+	pinctrl-names = "default";
+};
+
+&pinctrl {
+	spim2_lcd_pins: spim2_lcd_pins {
+		group1 {
+			pinmux = <SPIM2_MISO_GPIO12>,
+				 <SPIM2_SCLK_GPIO6>,
+				 <SPIM2_CSEL_GPIO5>;
+		};
+		group2 {
+			pinmux = <SPIM2_MOSI_GPIO7>;
+			output-low;
+		};
+	};
+};
+
+&wifi {
+	status = "okay";
+};
+
+/* =============================================================================
+ * I2C0 — Touch (CST816D) + RTC + IMU shared bus
+ * Override default pinctrl (GPIO1/2) to use GPIO10/11
+ * =============================================================================
+ */
+
+&i2c0 {
+	pinctrl-0 = <&i2c0_touch_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	cst816d: cst816d@15 {
+		compatible = "hynitron,cst8xx";
+		reg = <0x15>;
+		irq-gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		rst-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+	};
+
+	max30102: max30102@57 {
+		compatible = "maxim,max30102";
+		reg = <0x57>;
+		irq-gpios = <&gpio0 18 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		acq-mode = "spo2";
+		smp-ave = <1>;
+		fifo-watermark = <15>;
+		adc-rge = <4096>;
+		smp-sr = <100>;
+		led-pw = <411>;
+		led-pa = [24 24];
+		status = "okay";
+	};
+};
+
+&pinctrl {
+	i2c0_touch_pins: i2c0_touch_pins {
+		group1 {
+			pinmux = <I2C0_SDA_GPIO11>,
+				 <I2C0_SCL_GPIO10>;
+			bias-pull-up;
+			drive-open-drain;
+			output-high;
+		};
+	};
+};
